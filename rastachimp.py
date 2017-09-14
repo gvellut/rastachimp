@@ -8,7 +8,7 @@ from shapely.ops import unary_union, linemerge
 def simplify(polygons_f_with_value, distance):
     polygons_f, values = zip(*polygons_f_with_value)
     # fiona polygons to shapely polygons
-    polygons = map(shape, polygons_f)
+    polygons = list(map(shape, polygons_f))
     lines = _flatten([_polygon_contour(p) for p in polygons ])
     union = unary_union(lines)
     edges = linemerge(union)
@@ -37,9 +37,9 @@ def _build_topology(polygons, edges):
         face = []
         for (ring,pring) in zip(rings,preps):
             indexes  = list(edge_si.intersection(ring.bounds))
-            indexes  = filter(lambda i: pring.contains(edges[i]),indexes)
+            indexes  = list(filter(lambda i: pring.contains(edges[i]),indexes))
             # sequence of oriented arcs for current ring
-            topo_ring = _build_topo_ring(map(lambda i: edges[i],indexes),indexes)
+            topo_ring = _build_topo_ring(list(map(lambda i: edges[i],indexes)),indexes)
             face.append(topo_ring)
         faces.append(face)
     return faces
@@ -73,7 +73,7 @@ def _build_topo_ring(edges, edge_global_indexes):
     
         indexes.remove(next_)
     
-    return map(lambda i,o: (edge_global_indexes[i],o), result)
+    return list(map(lambda r: (edge_global_indexes[r[0]],r[1]), result))
     
 def _build_geometry(faces, edges):
     polygons = []
