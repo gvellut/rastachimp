@@ -3,3 +3,6 @@ __pycache__
 .project
 .pydevproject
 .settings
+.vscode
+.pytest_cache
+.python-version
