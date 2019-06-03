@@ -6,3 +6,4 @@ from .rastachimp import (  # noqa
     simplify_dp,
     smooth_chaikin,
 )
+from .utils import as_shapely  # noqa

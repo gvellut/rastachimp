@@ -1,8 +1,13 @@
 from rtree import Rtree
+from shapely.geometry import shape
 
 
 def set_geom(f, geom):
     return (geom, f[1])
+
+
+def as_shapely(fs):
+    return (set_geom(f, shape(f[0])) for f in fs)
 
 
 def extract_geoms(fs):

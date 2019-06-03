@@ -8,7 +8,7 @@ from shapely.geometry import LineString, MultiLineString, MultiPolygon, Polygon
 from shapely.ops import linemerge, unary_union
 from shapely.prepared import prep
 
-from .utils import build_spatial_index, extract_geoms, flatten, set_geom, take
+from .utils import build_spatial_index, flatten, set_geom, take
 
 logger = logging.getLogger(__package__)
 
@@ -21,8 +21,8 @@ def apply_topological_op(features, topo_op, **params):
     The lines that belong to multiple polygons are merged before being passed
     to topo_op
     """
-    base_geoms = extract_geoms(features)
-    multi, polygons = _decompose_multi(base_geoms)
+    geoms, data = zip(*features)
+    multi, polygons = _decompose_multi(geoms)
     # edges is a single MultiLineString
     edges = _decompose(polygons)
     faces = _build_topology(polygons, edges)
@@ -33,7 +33,7 @@ def apply_topological_op(features, topo_op, **params):
     # topoop_polygons are mapped 1-1 with the polygons
     topoop_polygons = _build_geometry(faces, topoop_edges)
     topoop_multi = _recompose_multi(multi, topoop_polygons)
-    topoop_features = [set_geom(f, p) for p, f in zip(topoop_multi, features)]
+    topoop_features = zip(topoop_multi, data)
     return topoop_features
 
 
@@ -54,9 +54,9 @@ def _smooth_chaikin_edges(
 ) -> MultiLineString:
 
     if keep_border:
-        border_index = detect_border(faces)
+        border_index = _detect_border(faces)
 
-    xy_edge_index = index_edges_by_xy(edges)
+    xy_edge_index = _index_edges_by_xy(edges)
 
     sm_edges = []
     for edge_index, edge in enumerate(edges):
@@ -118,7 +118,7 @@ def _densify_edges(
 ) -> MultiLineString:
 
     if keep_border:
-        border_index = detect_border(faces)
+        border_index = _detect_border(faces)
 
     ds_edges = []
     for edge_index, edge in enumerate(edges):
@@ -175,7 +175,7 @@ def simplify_dp(features, distance, keep_border=False):
     for f in simpl_features:
         # if polgygon is degenerate: This will make it empty
         # if mulitp: It will remove degenerate member polygons
-        geom = f["geometry"].buffer(0)
+        geom = f[0].buffer(0)
         if geom.is_empty:
             # degenerate
             continue
@@ -186,10 +186,10 @@ def simplify_dp(features, distance, keep_border=False):
 
 def _simplify_dp_edges(faces, edges: MultiLineString, distance, keep_border):
     if keep_border:
-        border_index = detect_border(faces)
+        border_index = _detect_border(faces)
         # simplify from Shapely does not change polylines composed of only 2 points
         # so the edges at the border are cut into 2 point polylines
-        faces, edges = segmentize_border(faces, edges, border_index)
+        faces, edges = _segmentize_border(faces, edges, border_index)
 
     # e.simplify does DP (from Shapely / GEOS)
     return edges.simplify(distance, True), faces, edges
@@ -309,7 +309,7 @@ def _build_topo_ring(edges, edge_global_indexes):
     return list(map(lambda r: (edge_global_indexes[r[0]], r[1]), result))
 
 
-def detect_border(faces):
+def _detect_border(faces):
     edge_counter = defaultdict(int)
     for if_, face in enumerate(faces):
         for ir, ring in enumerate(face):
@@ -318,7 +318,7 @@ def detect_border(faces):
     return set([edge_index for edge_index, c in edge_counter.items() if c == 1])
 
 
-def segmentize_border(faces, edges, border_index):
+def _segmentize_border(faces, edges, border_index):
     """
     Cuts edges at the border (part of a single polygon)
     into its constituent segments
@@ -368,7 +368,7 @@ def segmentize_border(faces, edges, border_index):
     return faces, MultiLineString(edges)
 
 
-def index_edges_by_xy(edges):
+def _index_edges_by_xy(edges):
     rindex = defaultdict(set)
     for i, edge in enumerate(edges):
         rindex[edge.coords[0]].add(i)

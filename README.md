@@ -18,7 +18,7 @@ The function to perform simplification is ```simplify_dp```. As inputs, it takes
 
 ```python
 from rasterio import features
-from rastachimp import simplify_dp
+from rastachimp import as_shapely, simplify_dp
 
 # 2D array with classification values
 image = np.array(...., dtype=np.uint8)
@@ -26,11 +26,15 @@ image = np.array(...., dtype=np.uint8)
 # no transform => in pixel coordinates
 shapes = features.shapes(image)
 
+# convert to Shapely geometry (features.shapes returns a GeoJSON dict)
+shapes = as_shapely(shapes)
+
 tolerance = 2
 # simpl is an interator of tuples (geometry, value)
 simpl = simplify_dp(shapes, tolerance)
 
 ```
+
 ### Issues
 
 Report issues at https://github.com/gvellut/rastachimp/issues
