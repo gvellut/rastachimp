@@ -196,26 +196,24 @@ def _simplify_dp_edges(faces, edges: MultiLineString, distance, keep_border):
 
 
 def _decompose_multi(geoms):
-    multi = {}
+    multi = []
     polygons = []
-    for i, geom in enumerate(geoms):
+    for geom in geoms:
         if geom.type == "MultiPolygon":
             polygons.extend(geom.geoms)
-            multi[i] = (
-                "MultiPolygon",
-                list(range(len(polygons) - len(geom), len(polygons))),
+            multi.append(
+                ("MultiPolygon", list(range(len(polygons) - len(geom), len(polygons))))
             )
         else:
             # Polygon
             polygons.append(geom)
-            multi[i] = ("Polygon", [len(polygons) - 1])
+            multi.append(("Polygon", [len(polygons) - 1]))
     return multi, polygons
 
 
 def _recompose_multi(multi, polygons):
     rec_multi = []
-    # multi is an OrderedDict so same order as insert
-    for gtype, poly_indices in multi.values():
+    for gtype, poly_indices in multi:
         if gtype == "MultiPolygon":
             rec_multi.append(MultiPolygon(take(polygons, poly_indices)))
         else:

@@ -25,9 +25,7 @@ def test_basic():
 
     shapes = features.shapes(image)
     # convert to Shapely geometry
-    simpl = list(simplify_dp(as_shapely(shapes), 2.0))
-
-    print(np.dtype(image.dtype).kind)
+    simpl = list(simplify_dp(as_shapely(shapes), 2.0, True))
 
     assert 6 == len(simpl)
 
