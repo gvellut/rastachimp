@@ -6,3 +6,11 @@ __pycache__
 .vscode
 .pytest_cache
 .python-version
+*.shp
+*.dbf
+*.prj
+*.shx
+*.cpg
+build/
+dist/
+rastachimp.egg-info/

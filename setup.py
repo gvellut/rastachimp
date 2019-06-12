@@ -20,7 +20,7 @@ with open("requirements-dev.txt") as f:
 setup_args = dict(
     name="rastachimp",
     version=version,
-    description="Topological tools for processing a vectorized raster",
+    description="Tools for topological processing of polygons vectorized from rasters",
     long_description=readme,
     long_description_content_type="text/markdown",
     url="https://github.com/gvellut/rastachimp",
